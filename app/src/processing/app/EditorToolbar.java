@@ -346,11 +346,12 @@ public class EditorToolbar extends JComponent implements MouseInputListener, Key
       break;
 
     case EXPORT:
+      Editor.serialMonitor.setVisible(false);
       editor.handleExport(e.isShiftDown());
       break;
 
     case SERIAL:
-      editor.handleSerial();
+      editor.handleSerial(true);
       break;
     }
   }
