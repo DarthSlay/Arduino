@@ -538,10 +538,8 @@ public class Editor extends JFrame implements RunnerListener {
     item = newJMenuItem(_("Upload"), 'U');
     item.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          handleExport(false);
-          // Hide the serial monitor window. It will reopen at the appropriate time
-          // if "auto show" is enabled
           serialMonitor.setVisible(false);
+          handleExport(false);
         }
       });
     fileMenu.add(item);
@@ -961,6 +959,7 @@ public class Editor extends JFrame implements RunnerListener {
     serialMonitor.closeSerialPort();
 
     serialMonitor = new SerialMonitor(Preferences.get("serial.port"));
+    serialMonitor.setIconImage(getIconImage());
     //System.out.println("set to " + get("serial.port"));
   }
 
@@ -2393,15 +2392,6 @@ public class Editor extends JFrame implements RunnerListener {
       try {
         serialMonitor.closeSerialPort();
 
-        // If "auto show" is disabled make sure we hide the serial monitor window.
-        // This causes the IDE to act the way it always has in the the past.
-        if (Preferences.getBoolean("serial.auto_show_monitor_window")) {
-          serialMonitor.setVisible(true);
-        }
-        else {
-          serialMonitor.setVisible(false);
-        }
-            
         uploading = true;
           
         boolean success = sketch.exportApplet(false);
@@ -2413,9 +2403,14 @@ public class Editor extends JFrame implements RunnerListener {
         }
       } catch (SerialNotFoundException e) {
         populateSerialMenu();
-        if (serialMenu.getItemCount() == 0) statusError(e);
-        else if (serialPrompt()) run();
-        else statusNotice(_("Upload canceled."));
+        if (serialMenu.getItemCount() == 0) {
+          statusError(e);
+        } else if (serialPrompt()) {
+          run();
+          return;
+        } else {
+          statusNotice(_("Upload canceled."));
+        }
       } catch (RunnerException e) {
         //statusError("Error during upload.");
         //e.printStackTrace();
@@ -2428,12 +2423,9 @@ public class Editor extends JFrame implements RunnerListener {
       uploading = false;
 
       // If auto show is enabled make sure the serial monitor is hooked up and visible
-      if (uploadSuccessful) {
-        if (Preferences.getBoolean("serial.auto_show_monitor_window")) {
-          handleSerial(true);
-        }
-      }
-      else {
+      if (uploadSuccessful && Preferences.getBoolean("serial.auto_show_monitor_window")) {
+        handleSerial(true);
+      } else {
         serialMonitor.setVisible(false);
       }
 
