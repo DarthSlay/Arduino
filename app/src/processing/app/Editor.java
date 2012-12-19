@@ -1438,8 +1438,8 @@ public class Editor extends JFrame implements RunnerListener {
     runHandler = new DefaultRunHandler();
     presentHandler = new DefaultPresentHandler();
     stopHandler = new DefaultStopHandler();
-    exportHandler = new DefaultExportHandler();
-    exportAppHandler = new DefaultExportAppHandler();
+    exportHandler = new DefaultExportHandler(false);
+    exportAppHandler = new DefaultExportHandler(true);
   }
 
 
@@ -2402,6 +2402,13 @@ public class Editor extends JFrame implements RunnerListener {
 
   // DAM: in Arduino, this is upload
   class DefaultExportHandler implements Runnable {
+
+    private final boolean usingProgrammer;
+
+    public DefaultExportHandler(boolean usingProgrammer) {
+      this.usingProgrammer = usingProgrammer;
+    }
+
     public void run() {
 
       boolean uploadSuccessful = false;
@@ -2410,7 +2417,7 @@ public class Editor extends JFrame implements RunnerListener {
 
         uploading = true;
           
-        boolean success = sketch.exportApplet(false);
+        boolean success = sketch.exportApplet(usingProgrammer);
         if (success) {
           statusNotice(_("Done uploading."));
           uploadSuccessful = true;
@@ -2445,41 +2452,6 @@ public class Editor extends JFrame implements RunnerListener {
         serialMonitor.setVisible(false);
       }
 
-      //toolbar.clear();
-      toolbar.deactivate(EditorToolbar.EXPORT);
-    }
-  }
-
-  // DAM: in Arduino, this is upload (with verbose output)
-  class DefaultExportAppHandler implements Runnable {
-    public void run() {
-
-      try {
-        serialMonitor.closeSerialPort();
-            
-        uploading = true;
-          
-        boolean success = sketch.exportApplet(true);
-        if (success) {
-          statusNotice(_("Done uploading."));
-        } else {
-          // error message will already be visible
-        }
-      } catch (SerialNotFoundException e) {
-        populateSerialMenu();
-        if (serialMenu.getItemCount() == 0) statusError(e);
-        else if (serialPrompt()) run();
-        else statusNotice(_("Upload canceled."));
-      } catch (RunnerException e) {
-        //statusError("Error during upload.");
-        //e.printStackTrace();
-        status.unprogress();
-        statusError(e);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      status.unprogress();
-      uploading = false;
       //toolbar.clear();
       toolbar.deactivate(EditorToolbar.EXPORT);
     }
