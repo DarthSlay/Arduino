@@ -20,6 +20,21 @@
   <condition property="platform"
 	     value="linux64"><os family="unix" arch="amd64" /></condition>
 
+  <property name="nodejs.version" value="0.8.19"/>
+
+  <condition property="nodejs.file" value="node-v${nodejs.version}-linux-x86.tar.gz">
+    <equals arg1="${platform}" arg2="linux32"/>
+  </condition>
+  <condition property="nodejs.file" value="node-v${nodejs.version}-linux-x64.tar.gz">
+    <equals arg1="${platform}" arg2="linux64"/>
+  </condition>
+  <condition property="nodejs.file" value="node-v${nodejs.version}-x86.msi">
+    <equals arg1="${platform}" arg2="windows"/>
+  </condition>
+  <condition property="nodejs.file" value="node-v${nodejs.version}-darwin-x86.tar.gz">
+    <equals arg1="${platform}" arg2="macosx"/>
+  </condition>
+
   <!-- Libraries required for running arduino -->
   <fileset dir=".." id="runtime.jars">
     <include name="core/core.jar" />
@@ -222,6 +237,8 @@
       <param name="target.path" value="macosx/work/Arduino.app/Contents/Resources/Java" />
     </antcall>
 
+    <antcall target="macosx-unzip-nodejs" />
+
     <antcall target="macosx-unzip-arm-toolchain" />
 
     <delete includeEmptyDirs="true" quiet="true">
@@ -273,6 +290,40 @@
       <arg value="xfz"/>
       <arg value="macosx/dist/gcc-arm-none-eabi-4.4.1-2010q1-188-macos.tar.gz"/>
       <arg value="--directory=macosx/work/Arduino.app/Contents/Resources/Java/hardware/tools/"/>
+    </exec>
+  </target>
+
+  <target name="macosx-check-nodejs-distfile">
+    <available file="macosx/dist/${nodejs.file}" property="nodejs_distfile_available" />
+  </target>
+
+  <target name="macosx-get-nodejs" depends="macosx-check-nodejs-distfile" unless="nodejs_distfile_available">
+    <get
+            src="http://nodejs.org/dist/v${nodejs.version}/${nodejs.file}"
+            dest="macosx/dist/${nodejs.file}"
+            verbose="true" />
+  </target>
+
+  <target name="macosx-unzip-nodejs" depends="macosx-get-nodejs" unless="nodejs_available">
+    <checksum file="macosx/dist/${nodejs.file}" algorithm="sha"
+              fileext=".sha" verifyproperty="checksum.matches"/>
+    <condition property="checksum.matches.fail">
+      <equals arg1="${checksum.matches}" arg2="false"/>
+    </condition>
+    <fail if="checksum.matches.fail">Checksum failed.
+
+      File ${nodejs.file} failed checksum.
+      Please remove "macosx/dist/${nodejs.file}" to download it again.
+    </fail>
+
+    <mkdir dir="macosx/work/Arduino.app/Contents/Resources/Java/nodejs"/>
+
+    <!-- Unzip toolchain to the destination folder -->
+    <exec executable="tar" output="/dev/null">
+      <arg value="xfz"/>
+      <arg value="macosx/dist/${nodejs.file}"/>
+      <arg value="--directory=macosx/work/Arduino.app/Contents/Resources/Java/nodejs/"/>
+      <arg value="--strip-components=1"/>
     </exec>
   </target>
 
@@ -471,6 +522,8 @@
     <copy todir="linux/work" file="linux/dist/arduino" />
     <chmod perm="755" file="linux/work/arduino" />
 
+    <antcall target="linux-unzip-nodejs" />
+
     <antcall target="linux-unzip-arm-toolchain" />
   </target>
 
@@ -538,6 +591,40 @@
       <arg value="xfz"/>
       <arg value="linux/dist/gcc-arm-none-eabi-4.4.1-2010q1-188-linux32.tar.gz"/>
       <arg value="--directory=linux/work/hardware/tools"/>
+    </exec>
+  </target>
+
+  <target name="linux-check-nodejs-distfile">
+    <available file="linux/dist/${nodejs.file}" property="nodejs_distfile_available" />
+  </target>
+
+  <target name="linux-get-nodejs" depends="linux-check-nodejs-distfile" unless="nodejs_distfile_available">
+    <get
+            src="http://nodejs.org/dist/v${nodejs.version}/${nodejs.file}"
+            dest="linux/dist/${nodejs.file}"
+            verbose="true" />
+  </target>
+
+  <target name="linux-unzip-nodejs" depends="linux-get-nodejs" unless="nodejs_available">
+    <checksum file="linux/dist/${nodejs.file}" algorithm="sha"
+              fileext=".sha" verifyproperty="checksum.matches"/>
+    <condition property="checksum.matches.fail">
+      <equals arg1="${checksum.matches}" arg2="false"/>
+    </condition>
+    <fail if="checksum.matches.fail">Checksum failed.
+
+      File ${nodejs.file} failed checksum.
+      Please remove "linux/dist/${nodejs.file}" to download it again.
+    </fail>
+
+    <mkdir dir="linux/work/nodejs"/>
+
+    <!-- Unzip toolchain to the destination folder -->
+    <exec executable="tar" os="Linux">
+      <arg value="xfz"/>
+      <arg value="linux/dist/${nodejs.file}"/>
+      <arg value="--directory=linux/work/nodejs/"/>
+      <arg value="--strip-components=1"/>
     </exec>
   </target>
 
@@ -690,6 +777,8 @@
       <fileset dir="windows/work" includes="**/*.html, **/*.dll, **/*.exe" />
     </chmod>
 
+    <antcall target="windows-unzip-nodejs" />
+
     <antcall target="windows-unzip-arm-toolchain" />
 
     <delete includeEmptyDirs="true" quiet="true">
@@ -737,6 +826,43 @@
       <arg value="windows/dist/gcc-arm-none-eabi-4.4.1-2010q1-188-win32.tar.gz"/>
       <arg value="--directory=windows/work/hardware/tools"/>
     </exec>
+  </target>
+
+  <target name="windows-check-nodejs-distfile">
+    <available file="windows/dist/${nodejs.file}" property="nodejs_distfile_available" />
+  </target>
+
+  <target name="windows-get-nodejs" depends="windows-check-nodejs-distfile" unless="nodejs_distfile_available">
+    <get
+            src="http://nodejs.org/dist/v${nodejs.version}/${nodejs.file}"
+            dest="windows/dist/${nodejs.file}"
+            verbose="true" />
+  </target>
+
+  <target name="windows-unzip-nodejs" depends="windows-get-nodejs" unless="nodejs_available">
+    <checksum file="windows/dist/${nodejs.file}" algorithm="sha"
+              fileext=".sha" verifyproperty="checksum.matches"/>
+    <condition property="checksum.matches.fail">
+      <equals arg1="${checksum.matches}" arg2="false"/>
+    </condition>
+    <fail if="checksum.matches.fail">Checksum failed.
+
+      File ${nodejs.file} failed checksum.
+      Please remove "windows/dist/${nodejs.file}" to download it again.
+    </fail>
+
+    <mkdir dir="windows/work/nodejs"/>
+
+    <exec executable="windows/lessmsi/lessmsi.exe">
+      <arg value="/x"/>
+      <arg value="windows/dist/${nodejs.file}"/>
+      <arg value="windows/work/nodejs/"/>
+    </exec>
+
+    <move todir="windows/work/nodejs/">
+      <fileset dir="windows/work/nodejs/SourceDir/nodejs/" />
+    </move>
+    <delete dir="windows/work/nodejs/SourceDir"/>
   </target>
 
   <target name="windows-dist" depends="windows-build"

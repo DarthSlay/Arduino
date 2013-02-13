@@ -16,8 +16,10 @@ hardware/arduino/bootloaders/caterina_LUFA/.dep/
 build/windows/work/
 build/windows/arduino-*.zip
 build/windows/dist/gcc-*.tar.gz
+build/windows/dist/node*.msi
 build/macosx/arduino-*.zip
 build/macosx/dist/gcc-*.tar.gz
+build/macosx/dist/node*.tar.gz
 build/linux/work/
 build/linux/dist/*.tar.gz
 build/linux/*.tgz
