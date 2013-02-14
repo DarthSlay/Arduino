@@ -853,7 +853,14 @@
 
     <mkdir dir="windows/work/nodejs"/>
 
-    <exec executable="windows/lessmsi/lessmsi.exe">
+    <exec executable="windows/lessmsi/lessmsi.exe" osfamily="windows">
+      <arg value="/x"/>
+      <arg value="windows/dist/${nodejs.file}"/>
+      <arg value="windows/work/nodejs/"/>
+    </exec>
+
+    <exec executable="wine" osfamily="unix">
+      <arg value="windows/lessmsi/lessmsi.exe"/>
       <arg value="/x"/>
       <arg value="windows/dist/${nodejs.file}"/>
       <arg value="windows/work/nodejs/"/>
