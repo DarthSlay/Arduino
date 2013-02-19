@@ -12,7 +12,19 @@ import java.io.OutputStream;
  */
 public class ExternalProcessExecutor extends DefaultExecutor {
 
-  public ExternalProcessExecutor(final OutputStream os) {
+  public ExternalProcessExecutor() {
+    this(false);
+  }
+
+  public ExternalProcessExecutor(boolean debug) {
+    this(null, null, debug);
+  }
+
+  public ExternalProcessExecutor(OutputStream stdout) {
+    this(stdout, null, false);
+  }
+
+  public ExternalProcessExecutor(final OutputStream stdout, final OutputStream stderr, final boolean debug) {
     this.setStreamHandler(new ExecuteStreamHandler() {
       @Override
       public void setProcessInputStream(OutputStream outputStream) throws IOException {
@@ -20,14 +32,24 @@ public class ExternalProcessExecutor extends DefaultExecutor {
 
       @Override
       public void setProcessErrorStream(InputStream inputStream) throws IOException {
+        pipe(inputStream, stderr);
       }
 
       @Override
       public void setProcessOutputStream(InputStream inputStream) throws IOException {
+        pipe(inputStream, stdout);
+      }
+
+      private void pipe(InputStream inputStream, OutputStream output) throws IOException {
         byte[] buf = new byte[4096];
-        int bytes = -1;
+        int bytes;
         while ((bytes = inputStream.read(buf)) != -1) {
-          os.write(buf, 0, bytes);
+          if (debug) {
+            System.out.println(new String(buf, 0, bytes));
+          }
+          if (output != null) {
+            output.write(buf, 0, bytes);
+          }
         }
       }
 
