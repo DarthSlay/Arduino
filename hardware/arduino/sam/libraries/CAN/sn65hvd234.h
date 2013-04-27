@@ -27,32 +27,25 @@
 
 #include "variant.h"
 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-
-typedef struct _SSN65HVD234_Data
+class SSN65HVD234
 {
+private:
     /** Rs Pin on PIO */
     uint32_t dwPin_Rs ;
 
     /** EN Pin on PIO */
     uint32_t dwPin_EN ;
-} SSN65HVD234_Data ;
+public:
+	uint32_t Init() ;
+	uint32_t SetRs(uint32_t Rs ) ;
+	uint32_t SetEN(uint32_t EN ) ;
 
-extern uint32_t SN65HVD234_Init( SSN65HVD234_Data* pComponent ) ;
-extern uint32_t SN65HVD234_SetRs( SSN65HVD234_Data* pComponent, uint32_t dwPin_Rs ) ;
-extern uint32_t SN65HVD234_SetEN( SSN65HVD234_Data* pComponent, uint32_t dwPin_EN ) ;
+	uint32_t Enable();
+	uint32_t Disable();
 
-extern uint32_t SN65HVD234_Enable( SSN65HVD234_Data* pComponent ) ;
-extern uint32_t SN65HVD234_Disable( SSN65HVD234_Data* pComponent ) ;
-
-extern uint32_t SN65HVD234_EnableLowPower( SSN65HVD234_Data* pComponent ) ;
-extern uint32_t SN65HVD234_DisableLowPower( SSN65HVD234_Data* pComponent ) ;
-
-#ifdef __cplusplus
-}
-#endif
+	uint32_t EnableLowPower();
+	uint32_t DisableLowPower();
+	SSN65HVD234(uint32_t Rs, uint32_t En);
+};
 
 #endif /* _CAN_SN65HVD234_ */
