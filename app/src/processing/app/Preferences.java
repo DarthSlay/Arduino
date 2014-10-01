@@ -892,6 +892,9 @@ public class Preferences {
     */
   }
 
+  static public int getInteger(String attribute, int defaultValue) {
+    return Integer.parseInt(get(attribute, String.valueOf(defaultValue)));
+  }
 
   static public void setInteger(String key, int value) {
     set(key, String.valueOf(value));

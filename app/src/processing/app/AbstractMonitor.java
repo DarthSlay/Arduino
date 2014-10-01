@@ -5,7 +5,7 @@ import processing.core.PApplet;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.DefaultCaret;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +16,10 @@ import static processing.app.I18n._;
 
 public abstract class AbstractMonitor extends JFrame implements MessageConsumer {
 
+  private static final int DEFAULT_MAX_CONTENT_LENGTH = 10 * 1024;
+
   protected final JLabel noLineEndingAlert;
+  protected final int maxContentLength;
   protected JTextArea textArea;
   protected JScrollPane scrollPane;
   protected JTextField textField;
@@ -27,6 +30,8 @@ public abstract class AbstractMonitor extends JFrame implements MessageConsumer 
 
   public AbstractMonitor(String title) {
     super(title);
+
+    maxContentLength = Preferences.getInteger("serial_monitor_max_content_length", DEFAULT_MAX_CONTENT_LENGTH);
 
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent event) {
@@ -58,7 +63,21 @@ public abstract class AbstractMonitor extends JFrame implements MessageConsumer 
     Font editorFont = Preferences.getFont("editor.font");
     Font font = new Font(consoleFont.getName(), consoleFont.getStyle(), editorFont.getSize());
 
-    textArea = new JTextArea(16, 40);
+    PlainDocument textAreaModel = new PlainDocument();
+    textAreaModel.setDocumentFilter(new DocumentFilter() {
+      @Override
+      public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+        int documentLength = fb.getDocument().getLength();
+        int sumOfLengths = documentLength + string.length();
+        if (sumOfLengths > maxContentLength) {
+          int lengthToRemove = sumOfLengths - maxContentLength;
+          fb.remove(0, lengthToRemove);
+          offset -= lengthToRemove;
+        }
+        super.insertString(fb, offset, string, attr);
+      }
+    });
+    textArea = new JTextArea(textAreaModel, null, 16, 40);
     textArea.setEditable(false);
     textArea.setFont(font);
 
