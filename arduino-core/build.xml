@@ -10,7 +10,7 @@
 
   <target name="clean" description="Clean out the build directories">
     <delete dir="bin" />
-    <delete file="arudino-core.jar" />
+    <delete file="arduino-core.jar" />
   </target>
 
   <target name="compile" description="Compile">
